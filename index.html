@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f2733">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Campus Control">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Campus Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: dark sidebar nav + working area. Dashboard = KPI strip, then lists/tables. Indian Ocean blue accent on blue-tinted neutrals. */
+:root{
+  --bg:#f1f5f7; --surface:#ffffff; --ink:#10222e; --muted:#566b79; --line:#d9e2e8;
+  --accent:#17607d; --accent-ink:#ffffff; --accent-soft:#e0eef4;
+  --good:#1e7a4c; --good-soft:#dff2e7; --warn:#8f5c08; --warn-soft:#faedd0; --bad:#b0322a; --bad-soft:#f9e1de;
+  --side:#0f2733; --side-ink:#c9dde7; --side-line:#1f3d4c;
+  --f-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1820; --surface:#12262f; --ink:#e5eef2; --muted:#92a9b5; --line:#24404d;
+  --accent:#5db6d6; --accent-ink:#06222d; --accent-soft:#173846;
+  --good:#5fd199; --good-soft:#153b2b; --warn:#e8b04e; --warn-soft:#3b3012; --bad:#f08c82; --bad-soft:#40201d;
+  --side:#071219; --side-ink:#b7ced9; --side-line:#173040; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1820; --surface:#12262f; --ink:#e5eef2; --muted:#92a9b5; --line:#24404d;
+  --accent:#5db6d6; --accent-ink:#06222d; --accent-soft:#173846;
+  --good:#5fd199; --good-soft:#153b2b; --warn:#e8b04e; --warn-soft:#3b3012; --bad:#f08c82; --bad-soft:#40201d;
+  --side:#071219; --side-ink:#b7ced9; --side-line:#173040; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--f-body);margin:0}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:1.7rem;line-height:1.15} h2{font-size:1.15rem} h3{font-size:1rem}
+.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100vh}
+aside{background:var(--side);color:var(--side-ink);padding:20px 14px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{font-family:var(--f-display);font-weight:700;font-size:1.25rem;color:#fff;padding:0 8px}
+.brand small{display:block;font:400 .75rem var(--f-body);color:var(--side-ink);margin-top:2px}
+nav{display:flex;flex-direction:column;gap:2px}
+nav button{all:unset;cursor:pointer;padding:8px 10px;border-radius:6px;color:var(--side-ink);font-weight:500}
+nav button:hover{background:var(--side-line)} nav button[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
+nav button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sidefoot{margin-top:auto;display:flex;flex-direction:column;gap:6px;font-size:.78rem}
+.sidefoot .lab{text-transform:uppercase;letter-spacing:.08em;font-size:.68rem;padding:0 8px;opacity:.7}
+.sidefoot button{all:unset;cursor:pointer;padding:4px 8px;border-radius:4px}
+.sidefoot button:hover{background:var(--side-line)}
+main{padding:28px clamp(16px,3vw,36px);min-width:0;display:flex;flex-direction:column;gap:20px}
+.head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.head p{margin:4px 0 0;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.row.end{justify-content:flex-end}
+.grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.card>h2,.card>.row>h2{margin-bottom:10px}
+.kpi{display:flex;flex-direction:column;gap:2px}
+.kpi .v{font:600 1.9rem/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}
+.kpi .s{font-size:.8rem;color:var(--muted)}
+.btn{font:inherit;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:6px;cursor:pointer}
+.btn:hover{border-color:var(--accent)} .btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent} .btn.sm{padding:3px 8px;font-size:.8rem} .btn.danger{color:var(--bad)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+input[type=number]{width:72px;font-family:var(--f-mono)} input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:var(--muted)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+td.wrap{white-space:normal;min-width:180px}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;background:var(--bg)}
+tr:last-child td{border-bottom:0} td.n,th.n{text-align:right} td.c,th.c{text-align:center}
+.card .tw{border:0;border-radius:0;background:transparent}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:.75rem;font-weight:600;background:var(--accent-soft);color:var(--accent)}
+.pill.good{background:var(--good-soft);color:var(--good)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.bad{background:var(--bad-soft);color:var(--bad)}.pill.mute{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.bar{height:7px;background:var(--bg);border:1px solid var(--line);border-radius:99px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--accent)}.bar i.good{background:var(--good)}.bar i.warn{background:var(--warn)}.bar i.bad{background:var(--bad)}
+.list{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
+.list li{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);min-width:0}
+.list li:last-child{border-bottom:0}.list .t{min-width:0}.list .t b{display:block;font-weight:600}.list .t span{color:var(--muted);font-size:.82rem}
+.mono{font-family:var(--f-mono);font-size:.82rem}
+.muted{color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);background:var(--surface);color:var(--muted);font:600 .8rem var(--f-mono);padding:5px 12px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button.on.P{background:var(--good);color:#fff}.seg button.on.L{background:var(--warn);color:#fff}.seg button.on.A{background:var(--bad);color:#fff}
+.notice{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:10px 14px;display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.week{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:10px;overflow-x:auto;padding-bottom:4px}
+.day{display:flex;flex-direction:column;gap:8px;min-width:0}
+.day h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.day.today h3{color:var(--accent)}
+.slot{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px}
+.slot b{display:block}.slot span{font-size:.8rem;color:var(--muted);display:block}
+.ccard{text-align:left;font:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.ccard:hover{border-color:var(--accent)}
+dialog{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:20px;width:min(460px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(5,15,22,.55)}
+dialog form{display:flex;flex-direction:column;gap:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  aside{position:static;height:auto;padding:14px 16px;gap:10px}
+  nav{flex-direction:row;overflow-x:auto;padding-bottom:4px}nav button{white-space:nowrap}
+  .sidefoot{flex-direction:row;flex-wrap:wrap;margin-top:0}.sidefoot .lab{width:100%}
+  main{padding-block:18px}
+}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .3s}}
+</style>
+
+<div class="app">
+  <aside>
+    <div class="brand">Campus Control<small id="semLabel"></small></div>
+    <nav id="nav" aria-label="Sections"></nav>
+    <div class="sidefoot">
+      <span class="lab">Data</span>
+      <button data-side="install" type="button" id="installBtn" hidden>Install app</button>
+      <button data-side="export" type="button">Export backup</button>
+      <button data-side="import" type="button">Import backup</button>
+      <button data-side="sample" type="button">Load sample data</button>
+      <button data-side="clear" type="button">Clear everything</button>
+      <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<dialog id="dlg"></dialog>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const fmt=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse=s=>new Date(s+'T00:00:00');
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return fmt(d)};
+const diffDays=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
+const todayStr=()=>fmt(new Date());
+const nice=s=>parse(s).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+const money=n=>'$'+Math.round(n).toLocaleString('en-US');
+const pc=n=>n==null?'–':Math.round(n)+'%';
+const uid=()=>Math.random().toString(36).slice(2,9);
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const WEEK=[6,0,1,2,3,4]; // Saturday to Thursday; Friday is the weekly rest day
+const KEY='campus-control-v1';
+const VIEWS=[['overview','Overview'],['student','Student dashboard'],['students','Students'],['courses','Courses & lessons'],['timetable','Timetable'],['attendance','Attendance'],['grades','Assessments & grades'],['fees','Fees'],['reqs','Requirements'],['news','Announcements']];
+const TYPES={assignment:'Assignment',quiz:'Quiz',midterm:'Midterm',final:'Final exam'};
+
+/* ---------- sample data ---------- */
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function seed(){
+  const rnd=mulberry(11),T=todayStr(),start='2026-09-20';
+  const topics={
+    BUS101:['Introduction to management','Evolution of management thought','Planning and goal setting','Strategy basics','Organizing and structure','Delegation and authority','Midterm review','Staffing and HR','Leadership styles','Motivation theories','Communication','Control systems','Ethics and CSR','Revision and case study'],
+    ACC102:['The accounting equation','Double-entry bookkeeping','Journal and ledger','Trial balance','Adjusting entries','Financial statements I','Midterm review','Financial statements II','Cash and receivables','Inventory','Fixed assets and depreciation','Liabilities','Cash flow statement','Revision'],
+    ECO103:['What is economics','Demand and supply','Elasticity','Consumer choice','Production and costs','Perfect competition','Midterm review','Monopoly','Oligopoly','Market failure','Labour markets','Government and prices','Trade basics','Revision'],
+    ENG104:['Academic reading','Paragraph writing','Grammar for writing','Summarising','Note-taking','Essay structure','Midterm review','Referencing','Presentations','Business emails','Report writing','Listening skills','Editing and proofreading','Revision'],
+    MTH105:['Number systems and fractions','Percentages and ratios','Algebra basics','Linear equations','Simultaneous equations','Functions and graphs','Midterm review','Break-even analysis','Simple and compound interest','Sequences','Introduction to statistics','Mean, median, mode','Probability','Revision'],
+    ICT106:['Computer basics','Files and folders','Word processing','Formatting documents','Spreadsheets','Formulas','Midterm review','Charts','Presentations','Email and the web','Databases','Online safety','Mini project','Revision']};
+  const cdef=[['BUS101','Principles of Management',3,'Dr. Abdirahman Warsame','Room A1',6,'08:00'],['ACC102','Financial Accounting',3,'Ms. Hodan Nur','Room B2',0,'10:00'],['ECO103','Microeconomics',3,'Dr. Mohamed Jama','Room A3',1,'08:00'],['ENG104','Academic English',2,'Ms. Sagal Ali','Language Lab',2,'10:00'],['MTH105','Business Mathematics',3,'Mr. Yusuf Hassan','Room B1',3,'08:00'],['ICT106','Computer Applications',2,'Mr. Liban Osman','Computer Lab 1',4,'10:00']];
+  const names=['Hibo Abdi','Mohamed Osman','Ayaan Farah','Abdirizak Nur','Ifrah Ahmed','Khadar Hussein','Sahra Ali','Liban Yusuf'];
+  const attP=[.97,.92,.7,.86,.98,.62,.93,.82],mean=[88,72,55,66,91,48,78,70],paid=[1,1,.4,.75,1,.25,.5,1],prior=[0,0,30,0,15,0,45,0],years=[1,1,2,1,2,1,3,1];
+  const docs=[{id:'d1',name:'National ID or birth certificate'},{id:'d2',name:'Secondary school certificate'},{id:'d3',name:'Passport photos'},{id:'d4',name:'Admission form'},{id:'d5',name:'Medical form'}];
+  const students=names.map((n,i)=>({id:'s'+(i+1),name:n,sid:'UNI-26-'+pad(i+1).padStart(3,'0'),program:'BBA Business Administration',year:years[i],status:'Active',priorCredits:prior[i],fee:450,payments:[],docs:{}}));
+  students.forEach((s,i)=>{
+    docs.forEach((d,k)=>{s.docs[d.id]=!((i===2&&k===4)||(i===5&&(k===1||k===2))||(i===3&&k===2))});
+    if(paid[i]>0)s.payments.push({id:uid(),date:'2026-09-14',amount:Math.round(450*paid[i]/ (paid[i]>.6?1:1)),note:paid[i]>=1?'Full semester fee':'Part payment'});
+  });
+  const adef=[['Assignment 1','assignment',2,20],['Quiz 1','quiz',3,10],['Midterm exam','midterm',7,30],['Assignment 2','assignment',9,20],['Quiz 2','quiz',11,10],['Final exam','final',15,40]];
+  const courses=cdef.map((c,ci)=>{
+    const [code,name,credits,lecturer,room,day,time]=c;
+    const enr=students.filter((s,i)=>!(ci===5&&i===7)).map(s=>s.id);
+    const lessons=topics[code].map((t,w)=>{const date=addDays(start,w*7+day);let status=date<T?'done':'planned';if(code==='BUS101'&&w===1)status='cancelled';
+      const l={id:uid(),week:w+1,title:t,date,status,att:{}};
+      if(status==='done')enr.forEach(sid=>{const i=+sid.slice(1)-1;l.att[sid]=rnd()<attP[i]?(rnd()<.1?'L':'P'):'A'});
+      return l});
+    const assess=adef.map(([title,type,w,max])=>{const date=addDays(start,w*7+day);const a={id:uid(),title,type,date,max,scores:{}};
+      if(date<T)enr.forEach(sid=>{const i=+sid.slice(1)-1;let v=Math.round(Math.max(0,Math.min(100,mean[i]+(rnd()-.5)*16))/100*max*2)/2;
+        a.scores[sid]=(code==='BUS101'&&title==='Assignment 1'&&i===5)?null:v});
+      return a});
+    return {id:'c'+(ci+1),code,name,credits,lecturer,room,day,time,students:enr,weights:{assignment:20,quiz:10,midterm:30,final:40},lessons,assess};
+  });
+  const news=[{id:uid(),date:addDays(T,-1),title:'Midterm exams start in week 8',body:'Students must clear at least half of the semester fee and hand in all admission documents to be eligible. Check the Requirements page.'},{id:uid(),date:addDays(T,-6),title:'Computer Lab 1 schedule change',body:'ICT106 moves to the second floor lab for the rest of the semester.'},{id:uid(),date:'2026-09-18',title:'Welcome to Semester 1',body:'Classes run Saturday to Thursday. Friday is the weekly rest day.'}];
+  return {v:1,sample:true,sem:{name:'Semester 1, 2026/27',start,end:addDays(start,16*7-3)},students,courses,docs,news,fee:450};
+}
+function empty(){return {v:1,sample:false,sem:{name:'Semester 1',start:todayStr(),end:addDays(todayStr(),16*7-3)},students:[],courses:[],docs:[{id:'d1',name:'National ID or birth certificate'},{id:'d2',name:'Secondary school certificate'},{id:'d3',name:'Passport photos'},{id:'d4',name:'Admission form'}],news:[],fee:450}}
+
+/* ---------- state ---------- */
+let S=null, ui={view:'overview',sid:null,cid:null,lid:null,q:''}, dl=null;
+try{const r=localStorage.getItem(KEY);if(r)S=JSON.parse(r)}catch(e){}
+if(!S||!S.students)S=empty();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+try{window.claude?.use?.('downloads')?.then(d=>{dl=d}).catch(()=>{})}catch(e){}
+const stu=id=>S.students.find(s=>s.id===id);
+const crs=id=>S.courses.find(c=>c.id===id);
+const enrolled=sid=>S.courses.filter(c=>c.students.includes(sid));
+
+/* ---------- calculations ---------- */
+const gradeOf=p=>p==null?{l:'–',gp:null}:p>=85?{l:'A',gp:4}:p>=70?{l:'B',gp:3}:p>=60?{l:'C',gp:2}:p>=50?{l:'D',gp:1}:{l:'F',gp:0};
+function courseScore(c,sid){const t={};for(const a of c.assess){const v=a.scores[sid];if(v==null||v==='')continue;const o=t[a.type]??={g:0,m:0};o.g+=+v;o.m+=a.max}
+  let w=0,s=0;for(const k in t){const wt=c.weights[k]||0;w+=wt;s+=wt*t[k].g/t[k].m}return w?s/w*100:null}
+function attOf(sid,cid){let p=0,n=0;for(const c of S.courses){if(cid&&c.id!==cid)continue;if(!c.students.includes(sid))continue;for(const l of c.lessons){if(l.status!=='done')continue;const v=l.att?.[sid];if(!v)continue;n++;if(v!=='A')p++}}return {pct:n?p/n*100:null,n,p}}
+function gpaOf(sid){let q=0,cr=0;for(const c of enrolled(sid)){const g=gradeOf(courseScore(c,sid)).gp;if(g==null)continue;q+=g*c.credits;cr+=c.credits}return cr?q/cr:null}
+function feeOf(s){const paid=s.payments.reduce((a,p)=>a+ +p.amount,0);return {paid,bal:s.fee-paid,pct:s.fee?paid/s.fee*100:100}}
+function reqOf(s){const dn=S.docs.filter(d=>s.docs[d.id]).length,a=attOf(s.id),g=gpaOf(s.id),f=feeOf(s),flags=[];
+  if(dn<S.docs.length)flags.push(`${S.docs.length-dn} document${S.docs.length-dn>1?'s':''} missing`);
+  if(a.pct!=null&&a.pct<75)flags.push(`Attendance ${pc(a.pct)}`);
+  if(g!=null&&g<2)flags.push(`GPA ${g.toFixed(2)}`);
+  if(f.pct<50)flags.push(`Paid ${pc(f.pct)} of fee`);
+  const eligible=dn===S.docs.length&&(a.pct==null||a.pct>=75)&&f.pct>=50;
+  return {dn,dt:S.docs.length,a,g,f,flags,eligible}}
+const attKind=p=>p==null?'mute':p>=85?'good':p>=75?'warn':'bad';
+const scoreKind=p=>p==null?'mute':p>=60?'good':p>=50?'warn':'bad';
+const pill=(t,k='')=>`<span class="pill ${k}">${esc(t)}</span>`;
+const bar=(p,k='')=>`<div class="bar"><i class="${k}" style="width:${Math.max(0,Math.min(100,p||0))}%"></i></div>`;
+const opt=(list,val)=>list.map(([v,l])=>`<option value="${esc(v)}"${v===val?' selected':''}>${esc(l)}</option>`).join('');
+const semInfo=()=>{const T=todayStr(),{start,end}=S.sem,total=Math.max(1,Math.ceil((diffDays(start,end)+1)/7)),d=diffDays(start,T);
+  return {T,total,wk:Math.max(1,Math.min(total,Math.floor(d/7)+1)),p:Math.max(0,Math.min(100,d/Math.max(1,diffDays(start,end))*100)),state:T<start?'Not started':T>end?'Finished':'In session'}};
+const lessonStats=()=>{let done=0,tot=0;for(const c of S.courses)for(const l of c.lessons){if(l.status==='cancelled')continue;tot++;if(l.status==='done')done++}return {done,tot}};
+
+/* ---------- views ---------- */
+const head=(t,sub,actions='')=>`<div class="head"><div><h1>${t}</h1>${sub?`<p>${sub}</p>`:''}</div><div class="row">${actions}</div></div>`;
+const noData=(msg)=>`<div class="card empty">${msg}</div>`;
+
+function vOverview(){
+  const si=semInfo(),ls=lessonStats(),T=si.T;
+  const rows=S.students.map(s=>({s,r:reqOf(s)}));
+  const risk=rows.filter(x=>x.r.flags.length);
+  const today=[];S.courses.forEach(c=>c.lessons.forEach(l=>{if(l.date===T&&l.status!=='cancelled')today.push({c,l})}));
+  today.sort((a,b)=>a.c.time.localeCompare(b.c.time));
+  const avgAtt=(()=>{const v=rows.map(x=>x.r.a.pct).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null})();
+  const coll=S.students.reduce((a,s)=>a+feeOf(s).paid,0),due=S.students.reduce((a,s)=>a+s.fee,0);
+  return head('Overview',`${esc(S.sem.name)} · ${nice(S.sem.start)} to ${nice(S.sem.end)}`,`<button class="btn" data-act="edit-sem">Edit semester</button>`)
+  +(S.sample?`<div class="notice"><span>Sample data is loaded so you can see how everything works. Clear it when you are ready to enter your own.</span><button class="btn sm" data-act="clear-ask">Clear sample data</button></div>`:'')
+  +((!S.students.length&&!S.courses.length)?`<div class="card"><h2>Get started</h2><ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px"><li>Press <b>Edit semester</b> and set the first and last day.</li><li>Open <b>Courses & lessons</b> and add each course. Fourteen weekly lessons are created for you.</li><li>Open <b>Students</b>, add your students and enrol them.</li><li>Take attendance, enter marks and record fees as the semester runs.</li></ol></div>`:'')
+  +`<div class="card"><div class="row" style="justify-content:space-between"><h2>Semester progress</h2>${pill(si.state,si.state==='In session'?'good':'')}</div>
+   <div class="row" style="gap:14px;flex-wrap:nowrap"><span class="mono">Week ${si.wk} of ${si.total}</span>${bar(si.p)}<span class="mono">${Math.round(si.p)}%</span></div></div>`
+  +`<div class="grid g4">
+    <div class="card kpi"><span class="l">Students</span><span class="v">${S.students.length}</span><span class="s">${S.students.filter(s=>reqOf(s).eligible).length} eligible for exams</span></div>
+    <div class="card kpi"><span class="l">Lessons delivered</span><span class="v">${ls.done}<small class="muted" style="font-size:1rem"> / ${ls.tot}</small></span><span class="s">${ls.tot?Math.round(ls.done/ls.tot*100):0}% of the plan</span></div>
+    <div class="card kpi"><span class="l">Average attendance</span><span class="v">${pc(avgAtt)}</span><span class="s">Target 75% or more</span></div>
+    <div class="card kpi"><span class="l">Fees collected</span><span class="v">${money(coll)}</span><span class="s">of ${money(due)} billed</span></div></div>`
+  +`<div class="grid g2">
+    <div class="card"><h2>Today's lessons</h2>${today.length?`<ul class="list">${today.map(({c,l})=>`<li><div class="t"><b>${esc(c.code)} · ${esc(l.title)}</b><span>${esc(c.time)} · ${esc(c.room)} · ${esc(c.lecturer)}</span></div>${l.status==='done'?pill('Done','good'):`<button class="btn sm" data-act="take-att" data-c="${c.id}" data-l="${l.id}">Take attendance</button>`}</li>`).join('')}</ul>`:`<p class="muted">No lessons scheduled today.</p>`}</div>
+    <div class="card"><h2>Needs attention</h2>${risk.length?`<ul class="list">${risk.map(({s,r})=>`<li><div class="t"><b>${esc(s.name)}</b><span>${esc(r.flags.join(' · '))}</span></div><button class="btn sm" data-act="open-student" data-s="${s.id}">Open</button></li>`).join('')}</ul>`:`<p class="muted">Every student meets the requirements.</p>`}</div></div>`
+  +`<div class="card"><h2>Announcements</h2>${S.news.length?`<ul class="list">${[...S.news].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3).map(n=>`<li><div class="t"><b>${esc(n.title)}</b><span>${nice(n.date)} · ${esc(n.body)}</span></div></li>`).join('')}</ul>`:`<p class="muted">No announcements yet.</p>`}</div>`;
+}
+
+function vStudent(){
+  if(!S.students.length)return head('Student dashboard','')+noData('Add a student first on the Students page.');
+  const s=stu(ui.sid)||S.students[0];ui.sid=s.id;
+  const r=reqOf(s),T=todayStr(),cs=enrolled(s.id),si=semInfo();
+  const cr=cs.reduce((a,c)=>a+c.credits,0);
+  const next=[];cs.forEach(c=>c.lessons.forEach(l=>{if(l.date>=T&&l.status!=='cancelled')next.push({c,l})}));
+  next.sort((a,b)=>(a.l.date+a.c.time).localeCompare(b.l.date+b.c.time));
+  const due=[],missing=[];cs.forEach(c=>c.assess.forEach(a=>{if(a.date>=T)due.push({c,a});else if(a.scores[s.id]==null)missing.push({c,a})}));
+  due.sort((a,b)=>a.a.date.localeCompare(b.a.date));
+  const picker=`<label>Student<select id="stuPick" data-act="pick-student">${opt(S.students.map(x=>[x.id,x.name]),s.id)}</select></label>`;
+  return head(esc(s.name),`${esc(s.sid)} · ${esc(s.program)} · Year ${s.year} · ${esc(s.status)}`,`${r.eligible?pill('Eligible for exams','good'):pill('Not eligible for exams','bad')}${picker}`)
+  +`<div class="grid g4">
+    <div class="card kpi"><span class="l">GPA</span><span class="v">${r.g==null?'–':r.g.toFixed(2)}</span><span class="s">${r.g==null?'No marks yet':r.g>=2?'Good standing':'Below the 2.00 minimum'}</span></div>
+    <div class="card kpi"><span class="l">Attendance</span><span class="v">${pc(r.a.pct)}</span><span class="s">${r.a.p} of ${r.a.n} lessons attended</span></div>
+    <div class="card kpi"><span class="l">Credits</span><span class="v">${s.priorCredits+cr}<small class="muted" style="font-size:1rem"> / 120</small></span><span class="s">${s.priorCredits} earned + ${cr} this semester</span></div>
+    <div class="card kpi"><span class="l">Fee balance</span><span class="v">${money(r.f.bal)}</span><span class="s">${money(r.f.paid)} paid of ${money(s.fee)}</span></div></div>`
+  +`<div class="card"><h2>My courses</h2><div class="tw"><table><thead><tr><th>Course</th><th>Lecturer</th><th>Lessons</th><th>Attendance</th><th class="n">Score</th><th class="c">Grade</th></tr></thead><tbody>
+    ${cs.map(c=>{const a=attOf(s.id,c.id),sc=courseScore(c,s.id),g=gradeOf(sc),dn=c.lessons.filter(l=>l.status==='done').length,tt=c.lessons.filter(l=>l.status!=='cancelled').length;
+      return `<tr><td><b>${esc(c.code)}</b> ${esc(c.name)}</td><td>${esc(c.lecturer)}</td><td><span class="mono">${dn}/${tt}</span></td><td>${pill(pc(a.pct),attKind(a.pct))}</td><td class="n">${pc(sc)}</td><td class="c">${pill(g.l,scoreKind(sc))}</td></tr>`}).join('')||`<tr><td colspan="6" class="empty">Not enrolled in any course.</td></tr>`}
+    </tbody></table></div></div>`
+  +`<div class="grid g2">
+    <div class="card"><h2>Next lessons</h2>${next.length?`<ul class="list">${next.slice(0,6).map(({c,l})=>`<li><div class="t"><b>${esc(c.code)} · ${esc(l.title)}</b><span>${nice(l.date)} · ${esc(c.time)} · ${esc(c.room)}</span></div>${l.date===T?pill('Today'):''}</li>`).join('')}</ul>`:`<p class="muted">No upcoming lessons.</p>`}</div>
+    <div class="card"><h2>Assessments</h2>${missing.length||due.length?`<ul class="list">${missing.map(({c,a})=>`<li><div class="t"><b>${esc(c.code)} · ${esc(a.title)}</b><span>Was due ${nice(a.date)}</span></div>${pill('Missing','bad')}</li>`).join('')}${due.slice(0,5).map(({c,a})=>{const d=diffDays(T,a.date);return `<li><div class="t"><b>${esc(c.code)} · ${esc(a.title)}</b><span>${nice(a.date)} · out of ${a.max}</span></div>${pill(d===0?'Today':d+' days',d<=7?'warn':'')}</li>`}).join('')}</ul>`:`<p class="muted">Nothing due.</p>`}</div></div>`
+  +`<div class="grid g2">
+    <div class="card"><h2>Requirements</h2><ul class="list">
+      ${S.docs.map(d=>`<li><span>${esc(d.name)}</span>${s.docs[d.id]?pill('Handed in','good'):pill('Missing','bad')}</li>`).join('')}
+      <li><span>Attendance at least 75%</span>${r.a.pct==null?pill('No data','mute'):r.a.pct>=75?pill('Met','good'):pill('Not met','bad')}</li>
+      <li><span>Fees paid at least 50%</span>${r.f.pct>=50?pill('Met','good'):pill('Not met','bad')}</li>
+      <li><span>GPA at least 2.00</span>${r.g==null?pill('No data','mute'):r.g>=2?pill('Met','good'):pill('Not met','bad')}</li></ul></div>
+    <div class="card"><h2>Payments</h2>${s.payments.length?`<ul class="list">${[...s.payments].sort((a,b)=>b.date.localeCompare(a.date)).map(p=>`<li><div class="t"><b>${money(p.amount)}</b><span>${nice(p.date)} · ${esc(p.note||'Payment')}</span></div></li>`).join('')}</ul>`:`<p class="muted">No payments recorded.</p>`}
+      <div style="margin-top:12px"><span class="muted">${pc(r.f.pct)} of semester fee paid</span>${bar(r.f.pct,r.f.pct>=100?'good':r.f.pct>=50?'':'bad')}</div></div></div>`;
+}
+
+function vStudents(){
+  const q=ui.q.toLowerCase(),list=S.students.filter(s=>!q||(s.name+s.sid).toLowerCase().includes(q));
+  return head('Students',`${S.students.length} registered`,`<input id="q" type="search" placeholder="Search name or ID" value="${esc(ui.q)}" data-act="search"><button class="btn pri" data-act="add-student">Add student</button>`)
+  +`<div class="tw"><table><thead><tr><th>Name</th><th>ID</th><th class="c">Year</th><th>Status</th><th class="n">Courses</th><th>Attendance</th><th class="n">GPA</th><th>Exams</th><th></th></tr></thead><tbody>
+  ${list.map(s=>{const r=reqOf(s);return `<tr><td><b>${esc(s.name)}</b></td><td class="mono">${esc(s.sid)}</td><td class="c">${s.year}</td><td>${pill(s.status,s.status==='Active'?'good':'mute')}</td><td class="n">${enrolled(s.id).length}</td><td>${pill(pc(r.a.pct),attKind(r.a.pct))}</td><td class="n">${r.g==null?'–':r.g.toFixed(2)}</td><td>${r.eligible?pill('Eligible','good'):pill('Blocked','bad')}</td>
+  <td class="n"><button class="btn sm" data-act="open-student" data-s="${s.id}">Dashboard</button> <button class="btn sm" data-act="edit-student" data-s="${s.id}">Edit</button> <button class="btn sm danger" data-act="del-student" data-s="${s.id}">Delete</button></td></tr>`}).join('')||`<tr><td colspan="9" class="empty">${S.students.length?'No student matches the search.':'No students yet. Add the first one.'}</td></tr>`}
+  </tbody></table></div>`;
+}
+
+function vCourses(){
+  const c=crs(ui.cid);
+  if(!c){
+    return head('Courses & lessons','Plan every lesson from the first week to the last.',`<button class="btn pri" data-act="add-course">Add course</button>`)
+    +(S.courses.length?`<div class="grid g2">${S.courses.map(c=>{const t=c.lessons.filter(l=>l.status!=='cancelled').length,d=c.lessons.filter(l=>l.status==='done').length;
+      return `<button class="card ccard" data-act="open-course" data-c="${c.id}"><div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(c.code)} · ${esc(c.name)}</h2>${pill(c.credits+' cr')}</div>
+      <span class="muted">${esc(c.lecturer)} · ${DAYS[c.day]} ${esc(c.time)} · ${esc(c.room)}</span>
+      <div class="row" style="flex-wrap:nowrap;gap:10px">${bar(t?d/t*100:0)}<span class="mono">${d}/${t}</span></div><span class="muted">${c.students.length} students enrolled</span></button>`}).join('')}</div>`:noData('No courses yet. Add your first course.'));
+  }
+  const lessonsRows=c.lessons.map(l=>`<tr><td class="mono">${l.week}</td><td><input type="date" value="${l.date}" data-act="l-date" data-l="${l.id}"></td><td class="wrap"><input type="text" value="${esc(l.title)}" data-act="l-title" data-l="${l.id}" style="width:100%"></td>
+    <td><select data-act="l-status" data-l="${l.id}">${opt([['planned','Planned'],['done','Delivered'],['cancelled','Cancelled']],l.status)}</select></td><td class="n"><button class="btn sm" data-act="take-att" data-c="${c.id}" data-l="${l.id}">Attendance</button> <button class="btn sm danger" data-act="del-lesson" data-l="${l.id}">Remove</button></td></tr>`).join('');
+  return head(`${esc(c.code)} · ${esc(c.name)}`,`${esc(c.lecturer)} · ${DAYS[c.day]} ${esc(c.time)} · ${esc(c.room)} · ${c.credits} credits`,`<button class="btn" data-act="back-courses">All courses</button><button class="btn" data-act="edit-course" data-c="${c.id}">Edit</button><button class="btn danger" data-act="del-course" data-c="${c.id}">Delete</button>`)
+  +`<div class="card"><div class="row" style="justify-content:space-between"><h2>Lesson plan</h2><button class="btn" data-act="add-lesson">Add lesson</button></div><div class="tw"><table><thead><tr><th>Week</th><th>Date</th><th>Topic</th><th>Status</th><th></th></tr></thead><tbody>${lessonsRows||`<tr><td colspan="5" class="empty">No lessons planned.</td></tr>`}</tbody></table></div></div>`
+  +`<div class="grid g2"><div class="card"><h2>Enrolled students</h2><ul class="list">${S.students.map(s=>`<li><label style="flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-size:.9rem"><input type="checkbox" data-act="enrol" data-s="${s.id}" ${c.students.includes(s.id)?'checked':''}>${esc(s.name)}</label><span class="mono muted">${esc(s.sid)}</span></li>`).join('')||'<li class="muted">No students registered.</li>'}</ul></div>
+  <div class="card"><h2>Grade weights</h2><p class="muted" style="margin-top:0">How each kind of assessment counts toward the final score. Total ${Object.values(c.weights).reduce((a,b)=>a+ +b,0)}%.</p><div class="two">${Object.entries(TYPES).map(([k,l])=>`<label>${l} %<input type="number" min="0" max="100" value="${c.weights[k]||0}" data-act="weight" data-k="${k}"></label>`).join('')}</div></div></div>`;
+}
+
+function vTimetable(){
+  const T=new Date().getDay();
+  return head('Timetable','Weekly schedule, Saturday to Thursday.',`<button class="btn pri" data-act="add-course">Add course</button>`)
+  +`<div class="week">${WEEK.map(d=>{const cs=S.courses.filter(c=>c.day===d).sort((a,b)=>a.time.localeCompare(b.time));
+    return `<div class="day ${d===T?'today':''}"><h3>${DAYS[d]}${d===T?' · today':''}</h3>${cs.map(c=>`<div class="slot"><b>${esc(c.time)} ${esc(c.code)}</b><span>${esc(c.name)}</span><span>${esc(c.room)}</span><span>${esc(c.lecturer)}</span></div>`).join('')||'<span class="muted">Free</span>'}</div>`}).join('')}</div>`;
+}
+
+function vAttendance(){
+  if(!S.courses.length)return head('Attendance','')+noData('Add a course first.');
+  const c=crs(ui.cid)||S.courses[0];ui.cid=c.id;const T=todayStr();
+  let l=c.lessons.find(x=>x.id===ui.lid);
+  if(!l){const past=c.lessons.filter(x=>x.date<=T&&x.status!=='cancelled');l=past[past.length-1]||c.lessons[0]}
+  if(l)ui.lid=l.id;
+  const studs=c.students.map(stu).filter(Boolean);
+  const mark=(sid,v)=>`<button type="button" class="${l.att?.[sid]===v?'on '+v:''}" data-act="att" data-s="${sid}" data-v="${v}">${v}</button>`;
+  return head('Attendance','P present · L late (counts as present) · A absent')
+  +`<div class="row"><label>Course<select data-act="pick-course">${opt(S.courses.map(x=>[x.id,x.code+' · '+x.name]),c.id)}</select></label>
+   <label>Lesson<select data-act="pick-lesson">${opt(c.lessons.map(x=>[x.id,`Week ${x.week} · ${nice(x.date)} · ${x.title}${x.status==='cancelled'?' (cancelled)':''}`]),l?.id)}</select></label></div>`
+  +(l?`<div class="card"><div class="row" style="justify-content:space-between"><h2>${esc(l.title)} ${pill(l.status==='done'?'Delivered':l.status==='cancelled'?'Cancelled':'Planned',l.status==='done'?'good':'mute')}</h2><button class="btn" data-act="att-all">Mark all present</button></div>
+   <div class="tw"><table><thead><tr><th>Student</th><th>ID</th><th class="c">Today</th><th>Course attendance</th></tr></thead><tbody>
+   ${studs.map(s=>{const a=attOf(s.id,c.id);return `<tr><td><b>${esc(s.name)}</b></td><td class="mono">${esc(s.sid)}</td><td class="c"><div class="seg">${mark(s.id,'P')}${mark(s.id,'L')}${mark(s.id,'A')}</div></td><td>${pill(pc(a.pct),attKind(a.pct))} <span class="muted mono">${a.p}/${a.n}</span></td></tr>`}).join('')||`<tr><td colspan="4" class="empty">No students enrolled in this course.</td></tr>`}
+   </tbody></table></div></div>`:noData('This course has no lessons yet.'));
+}
+
+function totalCell(c,sid){const sc=courseScore(c,sid),g=gradeOf(sc);return `${pc(sc)} ${pill(g.l,scoreKind(sc))}`}
+function vGrades(){
+  if(!S.courses.length)return head('Assessments & grades','')+noData('Add a course first.');
+  const c=crs(ui.cid)||S.courses[0];ui.cid=c.id;const T=todayStr();
+  const as=[...c.assess].sort((a,b)=>a.date.localeCompare(b.date)),studs=c.students.map(stu).filter(Boolean);
+  return head('Assessments & grades','Enter marks. Scores and grades update as you type.',`<button class="btn pri" data-act="add-assess">Add assessment</button>`)
+  +`<div class="row"><label>Course<select data-act="pick-course">${opt(S.courses.map(x=>[x.id,x.code+' · '+x.name]),c.id)}</select></label></div>`
+  +`<div class="tw"><table><thead><tr><th>Student</th>${as.map(a=>`<th class="c">${esc(a.title)}<br><span style="font-weight:400;text-transform:none;letter-spacing:0">${TYPES[a.type]} · ${nice(a.date)} · /${a.max} <button class="btn sm danger" data-act="del-assess" data-a="${a.id}" aria-label="Remove ${esc(a.title)}">×</button></span></th>`).join('')}<th>Score</th></tr></thead><tbody>
+  ${studs.map(s=>`<tr><td><b>${esc(s.name)}</b></td>${as.map(a=>{const v=a.scores[s.id];return `<td class="c"><input type="number" step="0.5" min="0" max="${a.max}" value="${v==null?'':v}" data-act="score" data-a="${a.id}" data-s="${s.id}" aria-label="${esc(s.name)} ${esc(a.title)}"></td>`}).join('')}<td id="tot-${s.id}">${totalCell(c,s.id)}</td></tr>`).join('')||`<tr><td colspan="${as.length+2}" class="empty">No students enrolled in this course.</td></tr>`}
+  </tbody></table></div><p class="muted">Grades: A 85+, B 70+, C 60+, D 50+, F below 50. Only assessments with marks count, weighted by the course settings.</p>`;
+}
+
+function vFees(){
+  const tot=S.students.reduce((a,s)=>a+s.fee,0),paid=S.students.reduce((a,s)=>a+feeOf(s).paid,0);
+  return head('Fees',`${money(paid)} collected · ${money(tot-paid)} outstanding`,`<button class="btn" data-act="set-fee">Default semester fee: ${money(S.fee)}</button>`)
+  +`<div class="tw"><table><thead><tr><th>Student</th><th class="n">Fee</th><th class="n">Paid</th><th class="n">Balance</th><th>Progress</th><th>Status</th><th></th></tr></thead><tbody>
+  ${S.students.map(s=>{const f=feeOf(s);return `<tr><td><b>${esc(s.name)}</b></td><td class="n">${money(s.fee)}</td><td class="n">${money(f.paid)}</td><td class="n">${money(f.bal)}</td><td style="min-width:120px">${bar(f.pct,f.pct>=100?'good':f.pct>=50?'warn':'bad')}</td><td>${f.pct>=100?pill('Cleared','good'):f.pct>=50?pill('Part paid','warn'):pill('Below 50%','bad')}</td><td class="n"><button class="btn sm" data-act="pay" data-s="${s.id}">Record payment</button> <button class="btn sm" data-act="pay-list" data-s="${s.id}">History</button></td></tr>`}).join('')||`<tr><td colspan="7" class="empty">No students yet.</td></tr>`}
+  </tbody></table></div>`;
+}
+
+function vReqs(){
+  return head('Requirements','Documents and rules a student must meet to sit exams.',`<button class="btn" data-act="add-doc">Add document</button>`)
+  +`<div class="tw"><table><thead><tr><th>Student</th>${S.docs.map(d=>`<th class="c" style="white-space:normal;min-width:96px">${esc(d.name)} <button class="btn sm danger" data-act="del-doc" data-d="${d.id}" aria-label="Remove ${esc(d.name)}">×</button></th>`).join('')}<th>Attendance</th><th class="n">GPA</th><th>Fees</th><th>Exams</th></tr></thead><tbody>
+  ${S.students.map(s=>{const r=reqOf(s);return `<tr><td><b>${esc(s.name)}</b></td>${S.docs.map(d=>`<td class="c"><input type="checkbox" data-act="doc" data-s="${s.id}" data-d="${d.id}" ${s.docs[d.id]?'checked':''} aria-label="${esc(s.name)} ${esc(d.name)}"></td>`).join('')}
+  <td>${pill(pc(r.a.pct),attKind(r.a.pct))}</td><td class="n">${r.g==null?'–':r.g.toFixed(2)}</td><td>${pill(pc(r.f.pct),r.f.pct>=50?'good':'bad')}</td><td>${r.eligible?pill('Eligible','good'):pill('Blocked','bad')}</td></tr>`}).join('')||`<tr><td colspan="${S.docs.length+5}" class="empty">No students yet.</td></tr>`}
+  </tbody></table></div><p class="muted">A student is eligible for exams with all documents handed in, attendance of 75% or more, and at least half of the fee paid. Graduation needs 120 credits and a GPA of 2.00 or more.</p>`;
+}
+
+function vNews(){
+  return head('Announcements','Notices for students and staff.',`<button class="btn pri" data-act="add-news">New announcement</button>`)
+  +(S.news.length?`<div class="card"><ul class="list">${[...S.news].sort((a,b)=>b.date.localeCompare(a.date)).map(n=>`<li style="align-items:flex-start"><div class="t"><b>${esc(n.title)}</b><span>${nice(n.date)}</span><p style="margin:4px 0 0;white-space:normal">${esc(n.body)}</p></div><button class="btn sm danger" data-act="del-news" data-n="${n.id}">Delete</button></li>`).join('')}</ul></div>`:noData('No announcements yet.'));
+}
+
+const RENDER={overview:vOverview,student:vStudent,students:vStudents,courses:vCourses,timetable:vTimetable,attendance:vAttendance,grades:vGrades,fees:vFees,reqs:vReqs,news:vNews};
+function render(){
+  $('#nav').innerHTML=VIEWS.map(([k,l])=>`<button type="button" data-act="nav" data-v="${k}" ${ui.view===k?'aria-current="page"':''}>${l}</button>`).join('');
+  $('#semLabel').textContent=S.sem.name;
+  $('#main').innerHTML=RENDER[ui.view]();
+  document.title='Campus Control';
+}
+function go(v){ui.view=v;try{history.replaceState(null,'','#'+v)}catch(e){}render();window.scrollTo(0,0)}
+
+/* ---------- dialogs ---------- */
+function dlg(title,body,onOk,ok='Save'){
+  const d=$('#dlg');d.innerHTML=`<form id="dform"><h3>${title}</h3>${body}<div class="row end"><button type="button" class="btn ghost" id="dcancel">Cancel</button>${ok?`<button class="btn pri">${ok}</button>`:''}</div></form>`;
+  $('#dcancel').textContent=ok?'Cancel':'Close';
+  $('#dcancel').onclick=()=>d.close();
+  $('#dform').onsubmit=e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target));d.close();onOk&&onOk(data)};
+  try{d.showModal()}catch(e){d.setAttribute('open','')}
+}
+const f=(name,label,val='',type='text',extra='')=>`<label>${label}<input name="${name}" type="${type}" value="${esc(val)}" ${extra}></label>`;
+const confirmDlg=(msg,fn,label='Delete')=>dlg('Are you sure?',`<p style="margin:0">${msg}</p>`,fn,label);
+
+/* ---------- actions ---------- */
+function findLesson(id){for(const c of S.courses){const l=c.lessons.find(x=>x.id===id);if(l)return {c,l}}return {}}
+const dayOpts=WEEK.map(d=>[String(d),DAYS[d]]);
+function courseForm(c={}){return `<div class="two">${f('code','Code',c.code||'','text','required')}${f('credits','Credits',c.credits||3,'number','min="1" max="12" required')}</div>${f('name','Course name',c.name||'','text','required')}${f('lecturer','Lecturer',c.lecturer||'')}
+  <div class="two">${f('room','Room',c.room||'')}<label>Day<select name="day">${opt(dayOpts,String(c.day??6))}</select></label></div>${f('time','Start time',c.time||'08:00','time')}`}
+function studentForm(s={}){return `${f('name','Full name',s.name||'','text','required')}<div class="two">${f('sid','Student ID',s.sid||('UNI-26-'+pad(S.students.length+1).padStart(3,'0')),'text','required')}${f('year','Year',s.year||1,'number','min="1" max="6"')}</div>${f('program','Program',s.program||'BBA Business Administration')}
+  <div class="two"><label>Status<select name="status">${opt(['Active','On leave','Graduated','Withdrawn'].map(x=>[x,x]),s.status||'Active')}</select></label>${f('priorCredits','Credits already earned',s.priorCredits||0,'number','min="0" max="200"')}</div>${f('fee','Semester fee (USD)',s.fee??S.fee,'number','min="0"')}`}
+
+function act(name,el,ev){
+  const D=el.dataset;
+  switch(name){
+  case 'nav':return go(D.v);
+  case 'pick-student':ui.sid=el.value;return render();
+  case 'open-student':ui.sid=D.s;return go('student');
+  case 'search':ui.q=el.value;render();const q=$('#q');q.focus();q.setSelectionRange(q.value.length,q.value.length);return;
+  case 'pick-course':ui.cid=el.value;ui.lid=null;return render();
+  case 'pick-lesson':ui.lid=el.value;return render();
+  case 'open-course':ui.cid=D.c;return render();
+  case 'back-courses':ui.cid=null;return render();
+  case 'take-att':ui.cid=D.c;ui.lid=D.l;return go('attendance');
+  case 'att':{const {l}=findLesson(ui.lid);if(!l)return;l.att??={};l.att[D.s]=D.v;if(l.status==='planned')l.status='done';save();return render()}
+  case 'att-all':{const {c,l}=findLesson(ui.lid);if(!l)return;l.att??={};c.students.forEach(s=>{if(!l.att[s])l.att[s]='P'});if(l.status==='planned')l.status='done';save();return render()}
+  case 'l-title':{const {l}=findLesson(D.l);l.title=el.value;return save()}
+  case 'l-date':{const {l}=findLesson(D.l);if(el.value)l.date=el.value;return save()}
+  case 'l-status':{const {l}=findLesson(D.l);l.status=el.value;save();return render()}
+  case 'del-lesson':{const {c,l}=findLesson(D.l);return confirmDlg(`Remove “${esc(l.title)}” from ${esc(c.code)}? Its attendance records go too.`,()=>{c.lessons=c.lessons.filter(x=>x!==l);save();render()},'Remove')}
+  case 'add-lesson':{const c=crs(ui.cid);const wk=c.lessons.length?Math.max(...c.lessons.map(l=>l.week))+1:1;
+    return dlg('Add lesson',`${f('title','Topic','','text','required')}<div class="two">${f('week','Week',wk,'number','min="1"')}${f('date','Date',addDays(S.sem.start,(wk-1)*7+c.day),'date','required')}</div>`,d=>{c.lessons.push({id:uid(),week:+d.week,title:d.title,date:d.date,status:'planned',att:{}});c.lessons.sort((a,b)=>a.date.localeCompare(b.date));save();render()})}
+  case 'enrol':{const c=crs(ui.cid);if(el.checked){if(!c.students.includes(D.s))c.students.push(D.s)}else c.students=c.students.filter(x=>x!==D.s);return save()}
+  case 'weight':{const c=crs(ui.cid);c.weights[D.k]=Math.max(0,+el.value||0);save();return render()}
+  case 'add-course':return dlg('Add course',courseForm(),d=>{const c={id:uid(),code:d.code,name:d.name,credits:+d.credits,lecturer:d.lecturer,room:d.room,day:+d.day,time:d.time,students:S.students.map(s=>s.id),weights:{assignment:20,quiz:10,midterm:30,final:40},lessons:[],assess:[]};
+    for(let w=0;w<14;w++)c.lessons.push({id:uid(),week:w+1,title:'Lesson '+(w+1),date:addDays(S.sem.start,w*7+c.day),status:'planned',att:{}});
+    S.courses.push(c);ui.cid=c.id;save();go('courses')});
+  case 'edit-course':{const c=crs(D.c);return dlg('Edit course',courseForm(c),d=>{Object.assign(c,{code:d.code,name:d.name,credits:+d.credits,lecturer:d.lecturer,room:d.room,day:+d.day,time:d.time});save();render()})}
+  case 'del-course':{const c=crs(D.c);return confirmDlg(`Delete ${esc(c.code)} · ${esc(c.name)} with all its lessons, attendance and marks?`,()=>{S.courses=S.courses.filter(x=>x!==c);ui.cid=null;save();render()})}
+  case 'add-student':return dlg('Add student',studentForm()+`<label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink)"><input type="checkbox" name="enrol" value="1" checked> Enrol in all current courses</label>`,d=>{const s={id:uid(),name:d.name,sid:d.sid,program:d.program,year:+d.year||1,status:d.status,priorCredits:+d.priorCredits||0,fee:+d.fee||0,payments:[],docs:{}};S.students.push(s);if(d.enrol)S.courses.forEach(c=>c.students.push(s.id));save();render()});
+  case 'edit-student':{const s=stu(D.s);return dlg('Edit student',studentForm(s),d=>{Object.assign(s,{name:d.name,sid:d.sid,program:d.program,year:+d.year||1,status:d.status,priorCredits:+d.priorCredits||0,fee:+d.fee||0});save();render()})}
+  case 'del-student':{const s=stu(D.s);return confirmDlg(`Delete ${esc(s.name)}? Their attendance, marks and payments are removed.`,()=>{S.students=S.students.filter(x=>x!==s);S.courses.forEach(c=>{c.students=c.students.filter(x=>x!==s.id);c.lessons.forEach(l=>delete l.att?.[s.id]);c.assess.forEach(a=>delete a.scores[s.id])});if(ui.sid===s.id)ui.sid=null;save();render()})}
+  case 'score':{const a=crs(ui.cid).assess.find(x=>x.id===D.a);const v=el.value===''?null:Math.max(0,Math.min(a.max,+el.value));a.scores[D.s]=v;if(v!=null)el.value=v;save();const t=$('#tot-'+D.s);if(t)t.innerHTML=totalCell(crs(ui.cid),D.s);return}
+  case 'add-assess':{const c=crs(ui.cid);return dlg('Add assessment',`${f('title','Title','','text','required')}<div class="two"><label>Type<select name="type">${opt(Object.entries(TYPES),'assignment')}</select></label>${f('max','Out of',20,'number','min="1" required')}</div>${f('date','Date',todayStr(),'date','required')}`,d=>{c.assess.push({id:uid(),title:d.title,type:d.type,date:d.date,max:+d.max,scores:{}});save();render()})}
+  case 'del-assess':{const c=crs(ui.cid),a=c.assess.find(x=>x.id===D.a);return confirmDlg(`Remove “${esc(a.title)}” and all its marks?`,()=>{c.assess=c.assess.filter(x=>x!==a);save();render()},'Remove')}
+  case 'pay':{const s=stu(D.s);return dlg(`Payment from ${esc(s.name)}`,`${f('amount','Amount (USD)',Math.max(0,feeOf(s).bal),'number','min="1" required')}${f('date','Date',todayStr(),'date','required')}${f('note','Note','','text','placeholder="Cash, EVC Plus, bank transfer"')}`,d=>{s.payments.push({id:uid(),date:d.date,amount:+d.amount,note:d.note});save();render()},'Record')}
+  case 'pay-list':{const s=stu(D.s);return dlg(`Payments · ${esc(s.name)}`,s.payments.length?`<ul class="list">${[...s.payments].sort((a,b)=>b.date.localeCompare(a.date)).map(p=>`<li><div class="t"><b>${money(p.amount)}</b><span>${nice(p.date)} · ${esc(p.note||'Payment')}</span></div></li>`).join('')}</ul>`:'<p class="muted">No payments yet.</p>',null,'')}
+  case 'set-fee':return dlg('Default semester fee',f('fee','USD',S.fee,'number','min="0" required')+'<p class="muted" style="margin:0">Used for students you add from now on.</p>',d=>{S.fee=+d.fee;save();render()});
+  case 'doc':{const s=stu(D.s);s.docs[D.d]=el.checked;save();return render()}
+  case 'add-doc':return dlg('Add document',f('name','Document name','','text','required'),d=>{S.docs.push({id:uid(),name:d.name});save();render()});
+  case 'del-doc':{const d=S.docs.find(x=>x.id===D.d);return confirmDlg(`Remove “${esc(d.name)}” from the requirements list?`,()=>{S.docs=S.docs.filter(x=>x!==d);save();render()},'Remove')}
+  case 'add-news':return dlg('New announcement',`${f('title','Title','','text','required')}<label>Message<textarea name="body" rows="4" required></textarea></label>`,d=>{S.news.push({id:uid(),date:todayStr(),title:d.title,body:d.body});save();render()},'Post');
+  case 'del-news':return confirmDlg('Delete this announcement?',()=>{S.news=S.news.filter(x=>x.id!==D.n);save();render()});
+  case 'edit-sem':return dlg('Semester',`${f('name','Name',S.sem.name,'text','required')}<div class="two">${f('start','First day',S.sem.start,'date','required')}${f('end','Last day',S.sem.end,'date','required')}</div>`,d=>{S.sem={name:d.name,start:d.start,end:d.end};save();render()});
+  case 'clear-ask':return clearAll();
+  }
+}
+function clearAll(){confirmDlg('Remove every student, course, mark and payment? Export a backup first if you may need them.',()=>{S=empty();ui={view:'overview',sid:null,cid:null,lid:null,q:''};save();render()},'Clear everything')}
+
+$('#main').addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(b)act(b.dataset.act,b,e)});
+$('#nav').addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(b)act(b.dataset.act,b,e)});
+$('#main').addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.act&&/^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName)&&t.dataset.act!=='search')act(t.dataset.act,t,e)});
+$('#main').addEventListener('input',e=>{if(e.target.dataset?.act==='search')act('search',e.target,e)});
+
+/* ---------- backup ---------- */
+document.querySelector('.sidefoot').addEventListener('click',async e=>{
+  const k=e.target.dataset.side;if(!k)return;
+  if(k==='install'){if(deferred){deferred.prompt();deferred=null;$('#installBtn').hidden=true}return}
+  if(k==='export'){const data=JSON.stringify(S,null,2),name=`campus-control-${todayStr()}.json`;
+    if(dl){try{await dl.save({filename:name,data});return}catch(err){}}
+    try{const u=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);return}catch(err){}
+    dlg('Backup',`<p style="margin:0">Copy this text and keep it in a file. Use Import backup to load it again.</p><textarea rows="8" readonly id="bk">${esc(data)}</textarea>`,null,'');setTimeout(()=>{const t=$('#bk');t&&t.select()},50)}
+  if(k==='import')$('#importFile').click();
+  if(k==='sample')confirmDlg('Replace the current data with the sample data?',()=>{S=seed();save();render()},'Load sample');
+  if(k==='clear')clearAll();
+});
+$('#importFile').addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.students||!d.courses)throw 0;S=d;save();render()}catch(err){dlg('Import failed','<p style="margin:0">That file is not a Campus Control backup.</p>',null,'')}};r.readAsText(file);e.target.value=''});
+
+const h=(location.hash||'').slice(1);if(RENDER[h])ui.view=h;
+window.addEventListener('hashchange',()=>{const v=location.hash.slice(1);if(RENDER[v]&&v!==ui.view){ui.view=v;render()}});
+render();
+
+/* ---------- PWA ---------- */
+let deferred=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('#installBtn').hidden=false});
+window.addEventListener('appinstalled',()=>{$('#installBtn').hidden=true});
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+</script>
+
+</body></html>
